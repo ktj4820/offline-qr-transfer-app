@@ -1,0 +1,1 @@
+{"name":"QR 파일 전송","short_name":"QR 전송","description":"네트워크 없이 화면과 카메라로 파일을 옮깁니다.","start_url":"./","display":"standalone","background_color":"#1f2933","theme_color":"#1f2933","lang":"ko","scope":"./","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"}]}

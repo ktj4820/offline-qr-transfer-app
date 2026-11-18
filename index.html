@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#1f2933" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="QR 전송" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="icon" href="icon-192.png" />
+    <title>QR 파일 전송</title>
+    <script type="module" crossorigin src="./assets/index-B1sGCZI1.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BNcyR_Li.css">
+  <link rel="manifest" href="./manifest.webmanifest"></head>
+  <body>
+    <header class="topbar">
+      <a href="#" class="brand">QR 파일 전송</a>
+      <span class="offline-badge" id="offline-badge" hidden>오프라인</span>
+    </header>
+
+    <main>
+      <!-- 시작 화면 -->
+      <section id="view-home" class="view">
+        <p class="lead">네트워크 없이 화면과 카메라로 파일을 옮깁니다.</p>
+        <div class="home-actions">
+          <a class="big-button" href="#send">
+            <strong>보내기</strong>
+            <span>파일을 고르면 QR이 연속 재생됩니다</span>
+          </a>
+          <a class="big-button" href="#receive">
+            <strong>받기</strong>
+            <span>카메라로 재생 중인 QR을 비춥니다</span>
+          </a>
+        </div>
+        <p class="note">파일은 이 기기 밖의 서버로 전송되지 않습니다. 다만 화면이 보이는 곳에서는 누구나 QR을 찍을 수 있으니 주의하세요.</p>
+      </section>
+
+      <!-- 보내기 -->
+      <section id="view-send" class="view" hidden>
+        <div class="toolbar">
+          <label class="button primary">
+            파일 선택
+            <input type="file" id="send-file" hidden />
+          </label>
+          <button type="button" class="button" id="send-toggle" disabled>일시정지</button>
+          <button type="button" class="button" id="send-fullscreen" disabled>QR 크게</button>
+        </div>
+
+        <div class="settings">
+          <label>방향
+            <select id="send-preset"></select>
+          </label>
+          <label>블록 크기
+            <select id="send-blocksize"></select>
+          </label>
+          <label>속도 <output id="send-fps-out"></output>
+            <input type="range" id="send-fps" min="1" max="30" step="1" />
+          </label>
+        </div>
+
+        <p class="error" id="send-error" hidden></p>
+
+        <div id="send-stage" class="stage" hidden>
+          <div class="qr-wrap" id="send-qr-wrap">
+            <canvas id="send-qr" class="qr"></canvas>
+          </div>
+          <dl class="stats">
+            <div><dt>파일</dt><dd id="send-name"></dd></div>
+            <div><dt>크기</dt><dd id="send-size"></dd></div>
+            <div><dt>블록</dt><dd id="send-blocks"></dd></div>
+            <div><dt>보낸 프레임</dt><dd id="send-count"></dd></div>
+            <div><dt>예상 소요</dt><dd id="send-eta"></dd></div>
+          </dl>
+          <div class="grid-panel">
+            <div class="legend">
+              <span><i class="sw sw-missing"></i>아직 안 보냄</span>
+              <span><i class="sw sw-known"></i>보냄</span>
+              <span><i class="sw sw-current"></i>지금 프레임</span>
+            </div>
+            <canvas id="send-grid" class="grid"></canvas>
+            <p class="note">보내는 쪽은 받는 쪽 상황을 알 수 없습니다. 받는 화면에서 진행 상황을 확인하세요. 수신이 끝날 때까지 계속 재생합니다.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 받기 -->
+      <section id="view-receive" class="view" hidden>
+        <div class="toolbar">
+          <button type="button" class="button primary" id="recv-start">카메라 시작</button>
+          <select id="recv-camera" hidden></select>
+          <button type="button" class="button" id="recv-reset" hidden>처음부터</button>
+        </div>
+        <p class="error" id="recv-error" hidden></p>
+
+        <div id="recv-stage" class="stage" hidden>
+          <div class="video-wrap">
+            <video id="recv-video" playsinline muted autoplay></video>
+            <div class="scan-box"></div>
+            <span class="scan-status" id="recv-scan-status">QR 찾는 중</span>
+          </div>
+
+          <div class="progress">
+            <div class="progress-bar"><div id="recv-bar"></div></div>
+            <span id="recv-percent">0%</span>
+          </div>
+          <dl class="stats">
+            <div><dt>복원 블록</dt><dd id="recv-known">-</dd></div>
+            <div><dt>받은 패킷</dt><dd id="recv-received">-</dd></div>
+            <div><dt>판독</dt><dd id="recv-fps">-</dd></div>
+            <div><dt>속도</dt><dd id="recv-speed">-</dd></div>
+            <div><dt>남은 시간</dt><dd id="recv-eta">-</dd></div>
+          </dl>
+          <div class="grid-panel">
+            <div class="legend">
+              <span><i class="sw sw-missing"></i>미수신</span>
+              <span><i class="sw sw-partial"></i>일부 받음</span>
+              <span><i class="sw sw-known"></i>받음</span>
+            </div>
+            <canvas id="recv-grid" class="grid"></canvas>
+          </div>
+        </div>
+
+        <div id="recv-done" class="done" hidden>
+          <h2 id="recv-done-title">받기 완료</h2>
+          <dl class="stats">
+            <div><dt>파일</dt><dd id="recv-file-name"></dd></div>
+            <div><dt>크기</dt><dd id="recv-file-size"></dd></div>
+            <div><dt>무결성</dt><dd id="recv-file-check"></dd></div>
+            <div><dt>소요</dt><dd id="recv-file-time"></dd></div>
+          </dl>
+          <img id="recv-preview" alt="받은 이미지 미리보기" hidden />
+          <div class="toolbar">
+            <button type="button" class="button primary" id="recv-share" hidden>사진·파일에 저장</button>
+            <button type="button" class="button" id="recv-download">다운로드</button>
+            <button type="button" class="button" id="recv-again">다른 파일 받기</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+  </body>
+</html>
